@@ -1,5 +1,6 @@
 from collections import namedtuple
 from datetime import datetime
+from shlex import split
 
 from .ssh import remote_execution
 from .utils import COMMAND_TEMPLATE, compute_time, input_int
@@ -22,7 +23,7 @@ class CrontabManager:
         return iter(self.crons)
 
     def __str__(self) -> str:
-        return "\n".join(self)
+        return "\n".join([split(x)[-1] for x in self])
 
     def append(self, cron_line: str):
         if cron_line not in self:
