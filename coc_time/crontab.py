@@ -16,6 +16,9 @@ class CrontabManager:
         self.remove_old_crons()
         self.sort()
 
+    def __bool__(self):
+        return bool(self.crons)
+
     def __contains__(self, cron_line: str):
         return cron_line in self.crons
 
@@ -23,6 +26,8 @@ class CrontabManager:
         return iter(self.crons)
 
     def __str__(self) -> str:
+        if not self:
+            return "<emtpy cron>"
         return "\n".join([split(x)[-1] for x in self])
 
     def append(self, cron_line: str):
