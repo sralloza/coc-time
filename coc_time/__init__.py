@@ -14,7 +14,7 @@ def parse_args():
         help="machine to use"
     )
     parser.add_argument("--add-cron", "-a", help="Add cron line",  action="store_true")
-    parser.add_argument("--read-only", help="Do not save cron", action="store_true")
+    parser.add_argument("--read-only", "-r", help="Do not save cron", action="store_true")
 
     return parser.parse_args()
 
