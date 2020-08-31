@@ -104,7 +104,10 @@ class CrontabManager:
         self = cls(current_crons)
         return self
 
-    def save_to_server(self):
+    def save_to_server(self) -> str:
+        if not self:
+            return "no cron lines to save"
+
         commands = []
         for i, cron_line in enumerate(self):
             char = ">>" if i else ">"
