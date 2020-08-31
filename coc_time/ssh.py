@@ -17,9 +17,16 @@ class Machines(Enum):
         return f"<{type(self).__name__}.{self.name}>"
 
     @staticmethod
+    def validate(machine: str) -> "Machines":
+        try:
+            return Machines[machine]
+        except KeyError:
+            raise ValueError(f"{machine!r} is not a valid Machine")
+
+    @staticmethod
     def set_current(machine):
         if not isinstance(machine, Machines):
-            machine = Machines[machine]
+            machine = Machines.validate(machine)
         _Static._current_machine = machine
 
     @staticmethod
