@@ -13,6 +13,7 @@ class CrontabManager:
 
     def __init__(self, iterable):
         self.crons = list(iterable)
+        self.original_length = len(self.crons)
         self.remove_old_crons()
         self.sort()
 
@@ -25,10 +26,17 @@ class CrontabManager:
     def __iter__(self):
         return iter(self.crons)
 
+    def __len__(self):
+        return len(self.crons)
+
     def __str__(self) -> str:
         if not self:
             return "<emtpy cron>"
         return "\n".join([split(x)[-1] for x in self])
+
+    @property
+    def has_changed(self):
+        return self.original_length != len(self)
 
     def append(self, cron_line: str):
         if cron_line not in self:

@@ -14,7 +14,7 @@ def parse_args():
         help="machine to use"
     )
     parser.add_argument("--add-cron", "-a", help="Add cron line",  action="store_true")
-    parser.add_argument("--read-only", "-r", help="Do not save cron", action="store_true")
+    parser.add_argument("--write", "-w", help="Update cron", action="store_true")
 
     return parser.parse_args()
 
@@ -31,6 +31,12 @@ def main():
     if options["add_cron"]:
         cron_mng.add_cron()
 
-    if not options["read_only"] or options["add_cron"]:
+    if options["write"] or options["add_cron"] or cron_mng.has_changed:
+        if cron_mng.has_changed:
+            print(
+                "Updating server crontab [old=%d,new=%d]"
+                % (cron_mng.original_length, len(cron_mng))
+            )
+
         result = cron_mng.save_to_server()
         print(f"[{result}]")
