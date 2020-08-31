@@ -10,6 +10,12 @@ class Machines(Enum):
     volvo = 1
     fenix = 2
 
+    def __str__(self):
+        return f"{type(self).__name__}.{self.name}"
+
+    def __repr__(self):
+        return f"<{type(self).__name__}.{self.name}>"
+
     @staticmethod
     def set_current(machine):
         if not isinstance(machine, Machines):
