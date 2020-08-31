@@ -35,14 +35,20 @@ class CrontabManager:
             self.crons.append(cron_line)
             self.sort()
 
-    def add_cron(self, minutes: int = None, hours: int = None, reason: str = None):
+    def add_cron(
+        self, days: int = None, mins: int = None, hours: int = None, reason: str = None
+    ):
+
+        if days is None:
+            days = input_int("Insert days: ")
+
         if hours is None:
             hours = input_int("Insert hours: ")
 
-        if minutes is None:
-            minutes = input_int("Insert minutes: ")
+        if mins is None:
+            mins = input_int("Insert minutes: ")
 
-        time = compute_time(hours, minutes, dec=True)
+        time = compute_time(days, hours, mins, dec=True)
 
         if reason is None:
             reason = input("Insert reason: ")
