@@ -14,6 +14,7 @@ class CrontabManager:
     def __init__(self, iterable):
         self.crons = list(iterable)
         self.original_length = len(self.crons)
+        self.remove_comments()
         self.remove_old_crons()
         self.sort()
 
@@ -91,6 +92,9 @@ class CrontabManager:
     def sorter(cls, line: str):
         day = cls.splitline(line)
         return day.month, day.day, day.hours, day.mins
+
+    def remove_comments(self):
+        self.crons = list(filter(lambda x: not x.startswith("#"), self.crons))
 
     def remove_old_crons(self):
         self.crons = list(filter(self.filter, self.crons))
