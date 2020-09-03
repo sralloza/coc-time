@@ -1,5 +1,6 @@
 from collections import namedtuple
 from datetime import datetime
+from hashlib import sha256
 from shlex import split
 
 from .ssh import remote_execution
@@ -14,6 +15,7 @@ class CrontabManager:
     def __init__(self, iterable):
         self.crons = list(iterable)
         self.original_length = len(self.crons)
+        self.original_hash = self.calculate_hash()
         self.remove_comments()
         self.remove_old_crons()
         self.sort()
@@ -37,7 +39,13 @@ class CrontabManager:
 
     @property
     def has_changed(self):
-        return self.original_length != len(self)
+        return self.original_hash != self.calculate_hash()
+
+    def calculate_hash(self) -> str:
+        data = str(self).encode("utf8")
+        sha = sha256()
+        sha.update(data)
+        return sha.hexdigest()
 
     def append(self, cron_line: str):
         if cron_line not in self:
