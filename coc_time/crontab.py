@@ -81,7 +81,7 @@ class CrontabManager:
         return f"{time.minute:2d} {time.hour:2d} {time.day:2d} {time.month:2d} *"
 
     def generate_cron_line(self, time: datetime, content: str = "") -> str:
-        ts = time.strftime("%Y-%m-%d %H:%M:%S")
+        ts = time.strftime("%Y-%m-%d %H:%M")
         content = f"[{ts}] {content}"
         cron_time = self.gen_cron_time(time)
         fmt = {"title": "Clash of clans", "content": content}
