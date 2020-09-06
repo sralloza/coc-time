@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import re
 import sys
 
-COMMAND_TEMPLATE = "/home/sralloza/notifications/notify.sh '{title}' '{content}'"
+COMMAND_TEMPLATE = "/home/coc/notifications/notify.sh '{title}' '{content}'"
 QUOTE_CHARS = {'"'}
 
 
