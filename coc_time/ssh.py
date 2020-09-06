@@ -6,9 +6,10 @@ from .utils import escape
 
 
 class Machines(Enum):
-    test = 0
-    volvo = 1
-    fenix = 2
+    coc = 0
+    test = 1
+    volvo = 2
+    fenix = 3
 
     def __str__(self):
         return f"{type(self).__name__}.{self.name}"
@@ -35,7 +36,7 @@ class Machines(Enum):
 
 
 class _Static:
-    _current_machine: Machines = Machines.test
+    _current_machine: Machines = Machines.coc
 
 
 def remote_execution(command: str) -> str:

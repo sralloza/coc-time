@@ -10,7 +10,7 @@ def parse_args():
     parser.add_argument(
         "machine",
         nargs="?",
-        default=Machines.volvo,
+        default=Machines.coc,
         type=Machines.validate,
         help="machine to use",
     )
