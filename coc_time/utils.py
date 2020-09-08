@@ -13,9 +13,10 @@ def escape(msg: str) -> str:
     return msg
 
 
-def compute_time(
-    days: int = 0, hours: int = 0, mins: int = 0, dec: bool = True
-) -> datetime:
+def compute_time(dec: bool = True, **date_kwargs: int) -> datetime:
+    days = date_kwargs.get("days", 0)
+    hours = date_kwargs.get("hours", 0)
+    mins = date_kwargs.get("mins", 0)
 
     time = datetime.now() + timedelta(days=days, hours=hours, minutes=mins)
     if dec:

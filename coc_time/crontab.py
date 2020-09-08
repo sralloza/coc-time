@@ -2,6 +2,7 @@ from collections import namedtuple
 from datetime import datetime
 from hashlib import sha256
 from shlex import split
+from typing import Dict
 
 from .ssh import remote_execution
 from .utils import COMMAND_TEMPLATE, compute_time, input_int
@@ -52,9 +53,10 @@ class CrontabManager:
             self.crons.append(cron_line)
             self.sort()
 
-    def add_cron(
-        self, days: int = None, mins: int = None, hours: int = None, reason: str = None
-    ):
+    def add_cron(self, reason: str = None, **date_kwargs: int):
+        days = date_kwargs.get("days")
+        hours = date_kwargs.get("hours")
+        mins = date_kwargs.get("mins")
 
         if days is None:
             days = input_int("Insert days: ")
@@ -65,7 +67,7 @@ class CrontabManager:
         if mins is None:
             mins = input_int("Insert minutes: ")
 
-        time = compute_time(days, hours, mins, dec=True)
+        time = compute_time(days=days, hours=hours, mins=mins, dec=True)
 
         if reason is None:
             reason = input("Insert reason: ")
