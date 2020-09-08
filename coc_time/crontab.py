@@ -104,8 +104,16 @@ class CrontabManager:
     def remove_comments(self):
         self.crons = list(filter(lambda x: not x.startswith("#"), self.crons))
 
-    def remove_old_crons(self):
-        self.crons = list(filter(self.filter, self.crons))
+    def remove_old_crons(self, echo=True):
+        new_crons = list(filter(self.filter, self.crons))
+        removed_crons = set(self.crons) - set(new_crons)
+
+        if echo:
+            print("Removing crons:")
+            for line in removed_crons:
+                print("-", split(line)[-1])
+
+        self.crons = new_crons
 
     @classmethod
     def filter(cls, line):
