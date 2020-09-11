@@ -53,7 +53,7 @@ class CrontabManager:
             self.crons.append(cron_line)
             self.sort()
 
-    def add_cron(self, reason: str = None, **date_kwargs: int):
+    def add_cron(self, reason: str = None, demo: bool = False, **date_kwargs: int):
         days = date_kwargs.get("days")
         hours = date_kwargs.get("hours")
         mins = date_kwargs.get("mins")
@@ -68,6 +68,9 @@ class CrontabManager:
             mins = input_int("Insert minutes: ")
 
         time = compute_time(days=days, hours=hours, mins=mins, dec=True)
+        if demo:
+            print(f'[{time.strftime("%Y-%m-%d %H:%M")}]')
+            return
 
         if reason is None:
             reason = input("Insert reason: ")

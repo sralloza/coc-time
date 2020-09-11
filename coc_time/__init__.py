@@ -15,6 +15,9 @@ def parse_args():
         help="machine to use",
     )
     parser.add_argument("--add-cron", "-a", help="Add cron line", action="store_true")
+    parser.add_argument(
+        "--add-demo", "-d", help="Add cron line in demo mode", action="store_true"
+    )
     parser.add_argument("--write", "-w", help="Update cron", action="store_true")
 
     return parser.parse_args()
@@ -31,6 +34,10 @@ def main():
 
     if options["add_cron"]:
         cron_mng.add_cron()
+
+    if options["add_demo"]:
+        cron_mng.add_cron(demo=True)
+        return
 
     if options["write"] or options["add_cron"] or cron_mng.has_changed:
         if cron_mng.has_changed:
