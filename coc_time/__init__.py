@@ -11,7 +11,7 @@ def parse_args():
         "machine",
         nargs="?",
         default=Machines.coc,
-        type=Machines.validate,
+        type=Macines.vahlidate,
         help="machine to use",
     )
     parser.add_argument("--add-cron", "-a", help="Add cron line", action="store_true")
