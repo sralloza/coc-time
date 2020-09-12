@@ -18,7 +18,8 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 @click.option("--add-demo", "-d", is_flag=True)
 @click.option("--remove", "-r", type=int)
 @click.option("--write", "-w", is_flag=True)
-def main(machine, add_cron, add_demo, remove, write):
+@click.option("--no-write", "-w", is_flag=True)
+def main(machine, add_cron, add_demo, remove, no_write):
     Machines.set_current(machine)
 
     print("Using machine %r" % Machines.get_current().name)
@@ -36,7 +37,7 @@ def main(machine, add_cron, add_demo, remove, write):
     if remove:
         cron_mng.remove_cron(remove)
 
-    if write or add_cron or cron_mng.has_changed:
+    if not no_write and (add_cron or cron_mng.has_changed):
         if cron_mng.has_changed:
             print(
                 "Updating server crontab [old=%d,new=%d]"
