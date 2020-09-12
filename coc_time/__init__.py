@@ -18,6 +18,7 @@ HELP = {
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
+@click.version_option(version=__version__)
 @click.argument("machine", default=Machines.coc, type=Machines.validate, required=False)
 @click.option("--add-cron", "-a", is_flag=True, help=HELP["add-cron"])
 @click.option("--add-demo", "-d", is_flag=True, help=HELP["add-demo"])
