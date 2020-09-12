@@ -1,6 +1,7 @@
 from enum import Enum
 from subprocess import CalledProcessError, run
 import sys
+from typing import Any
 
 from .utils import escape
 
@@ -18,7 +19,11 @@ class Machines(Enum):
         return f"<{type(self).__name__}.{self.name}>"
 
     @staticmethod
-    def validate(machine: str) -> "Machines":
+    def validate(machine: Any) -> "Machines":
+        if isinstance(machine, Machines):
+            return machine
+
+        machine = str(machine)
         try:
             return Machines[machine]
         except KeyError:

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
-import re
 import sys
+
+import click
 
 COMMAND_TEMPLATE = "/home/coc/notifications/notify.sh '{title}' '{content}'"
 QUOTE_CHARS = {'"'}
@@ -30,4 +31,4 @@ def input_int(msg: str) -> int:
         return int(value)
     except ValueError:
         print(f"{value!r} is not a valid integer", file=sys.stderr)
-        sys.exit(-1)
+        raise click.Abort()

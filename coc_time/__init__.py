@@ -1,45 +1,38 @@
-from argparse import ArgumentParser
-import sys
+import click
 
-from coc_time.crontab import CrontabManager
-from coc_time.ssh import Machines
-
-
-def parse_args():
-    parser = ArgumentParser(prog="Clash of Clans")
-    parser.add_argument(
-        "machine",
-        nargs="?",
-        default=Machines.coc,
-        type=Macines.vahlidate,
-        help="machine to use",
-    )
-    parser.add_argument("--add-cron", "-a", help="Add cron line", action="store_true")
-    parser.add_argument(
-        "--add-demo", "-d", help="Add cron line in demo mode", action="store_true"
-    )
-    parser.add_argument("--write", "-w", help="Update cron", action="store_true")
-
-    return parser.parse_args()
+from .crontab import CrontabManager
+from .ssh import Machines
 
 
-def main():
-    options = vars(parse_args())
-    Machines.set_current(options["machine"])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
+
+@click.command(context_settings=CONTEXT_SETTINGS)
+@click.argument(
+    "machine",
+    default=Machines.coc,
+    type=Machines.validate,
+    required=False,
+)
+@click.option("--add-cron", "-a", is_flag=True)
+@click.option("--add-demo", "-d", is_flag=True)
+@click.option("--write", "-w", is_flag=True)
+def main(machine, add_cron, add_demo, write):
+    Machines.set_current(machine)
 
     print("Using machine %r" % Machines.get_current().name)
     cron_mng = CrontabManager.get_current_crons()
 
     print(cron_mng)
 
-    if options["add_cron"]:
+    if add_cron:
         cron_mng.add_cron()
 
-    if options["add_demo"]:
+    if add_demo:
         cron_mng.add_cron(demo=True)
         return
 
-    if options["write"] or options["add_cron"] or cron_mng.has_changed:
+    if write or add_cron or cron_mng.has_changed:
         if cron_mng.has_changed:
             print(
                 "Updating server crontab [old=%d,new=%d]"
