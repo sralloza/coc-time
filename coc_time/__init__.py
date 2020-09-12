@@ -5,6 +5,12 @@ from .ssh import Machines
 
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+HELP = {
+    "add-cron": "Adds a new cron",
+    "add-demo": "Shows the date but doesn't add a new cron",
+    "remove": "Removes the nth cron",
+    "no-write": "Force the no upload of a new cron",
+}
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
@@ -14,11 +20,13 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     type=Machines.validate,
     required=False,
 )
-@click.option("--add-cron", "-a", is_flag=True)
-@click.option("--add-demo", "-d", is_flag=True)
-@click.option("--remove", "-r", type=int)
-@click.option("--write", "-w", is_flag=True)
-def main(machine, add_cron, add_demo, remove, write):
+@click.option("--add-cron", "-a", is_flag=True, help=HELP["add-cron"])
+@click.option("--add-demo", "-d", is_flag=True, help=HELP["add-demo"])
+@click.option("--remove", "-r", type=int, help=HELP["remove"])
+@click.option("--no-write", "-w", is_flag=True, help=HELP["no-write"])
+def main(machine, add_cron, add_demo, remove, no_write):
+    """Clash of clans notifier manager."""
+
     Machines.set_current(machine)
 
     print("Using machine %r" % Machines.get_current().name)
@@ -36,7 +44,7 @@ def main(machine, add_cron, add_demo, remove, write):
     if remove:
         cron_mng.remove_cron(remove)
 
-    if write or add_cron or cron_mng.has_changed:
+    if not no_write and (add_cron or cron_mng.has_changed):
         if cron_mng.has_changed:
             print(
                 "Updating server crontab [old=%d,new=%d]"
@@ -45,3 +53,6 @@ def main(machine, add_cron, add_demo, remove, write):
 
         result = cron_mng.save_to_server()
         print(f"[{result}]")
+
+def cli():
+    return main(prog_name="coc")

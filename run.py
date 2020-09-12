@@ -1,5 +1,5 @@
-from coc_time import main
+from coc_time import cli
 
 
 if __name__ == "__main__":
-    main()
+    cli()
