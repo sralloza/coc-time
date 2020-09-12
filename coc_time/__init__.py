@@ -17,38 +17,45 @@ HELP = {
 }
 
 
-@click.command(context_settings=CONTEXT_SETTINGS)
-@click.version_option(version=__version__)
-@click.argument("machine", default=Machines.coc, type=Machines.validate, required=False)
-@click.option("--add-cron", "-a", is_flag=True, help=HELP["add-cron"])
-@click.option("--add-demo", "-d", is_flag=True, help=HELP["add-demo"])
-@click.option("--edit-message", "-e", type=int, help=HELP["edit"])
-@click.option("--remove", "-r", type=int, help=HELP["remove"])
-@click.option("--no-write", "-w", is_flag=True, help=HELP["no-write"])
-def main(machine, add_cron, add_demo, edit_message, remove, no_write):
-    """Clash of clans notifier manager."""
+class MyGroup(click.Group):
+    def get_first_argument(self) -> click.core.Argument:
+        for param in self.params:
+            if isinstance(param, click.Argument):
+                return param
+        raise ValueError
 
+    def parse_args(self, ctx, args):
+        ctx.ensure_object(dict)
+        if args and args[0] in self.commands:
+            if len(args) == 1 or args[1] not in self.commands:
+                args.insert(0, self.get_first_argument().default.name)
+        super(MyGroup, self).parse_args(ctx, args)
+
+
+@click.group(
+    cls=MyGroup, context_settings=CONTEXT_SETTINGS, invoke_without_command=True
+)
+@click.version_option(version=__version__)
+@click.pass_context
+@click.argument("machine", default=Machines.coc, type=Machines.validate, required=False)
+@click.option("--no-write", "-w", is_flag=True, help=HELP["no-write"])
+def main(ctx, machine, no_write):
+    """Clash of clans notifier manager."""
     Machines.set_current(machine)
 
     print("Using machine %r" % Machines.get_current().name)
     cron_mng = CrontabManager.get_current_crons()
+    ctx.obj = cron_mng
 
     print(cron_mng)
 
-    if add_cron:
-        cron_mng.add_cron()
 
-    if add_demo:
-        cron_mng.add_cron(demo=True)
-        return
+@main.resultcallback()
+@click.pass_obj
+def process_result(cron_mng: CrontabManager, result, **kwargs):
+    no_write = kwargs.pop("no_write")
 
-    if edit_message is not None:
-        cron_mng.edit_cron_message(edit_message)
-
-    if remove is not None:
-        cron_mng.remove_cron(remove)
-
-    if not no_write and (add_cron or cron_mng.has_changed):
+    if not no_write and cron_mng.has_changed:
         if cron_mng.has_changed:
             print(
                 "Updating server crontab [old=%d,new=%d]"
@@ -57,6 +64,32 @@ def main(machine, add_cron, add_demo, edit_message, remove, no_write):
 
         result = cron_mng.save_to_server()
         print(f"[{result}]")
+
+
+@main.command("add-cron", help=HELP["add-cron"])
+@click.pass_obj
+def add_cron(cron_mng: CrontabManager):
+    cron_mng.add_cron()
+
+
+@main.command("add-demo", help=HELP["add-demo"])
+@click.pass_obj
+def add_demo(cron_mng: CrontabManager):
+    cron_mng.add_cron(demo=True)
+
+
+@main.command("edit", help=HELP["edit"])
+@click.argument("cron_position", type=int)
+@click.pass_obj
+def edit_cron_message(cron_mng: CrontabManager, cron_position: int):
+    cron_mng.edit_cron_message(cron_position)
+
+
+@main.command("remove", help=HELP["remove"])
+@click.argument("cron_position", type=int)
+@click.pass_obj
+def remove_cron(cron_mng: CrontabManager, cron_position: int):
+    cron_mng.remove_cron(cron_position)
 
 
 def cli():
