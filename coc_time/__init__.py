@@ -1,8 +1,11 @@
 import click
 
+from ._version import get_versions
 from .crontab import CrontabManager
 from .ssh import Machines
 
+__version__ = get_versions()["version"]
+del get_versions
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 HELP = {
@@ -14,12 +17,7 @@ HELP = {
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
-@click.argument(
-    "machine",
-    default=Machines.coc,
-    type=Machines.validate,
-    required=False,
-)
+@click.argument("machine", default=Machines.coc, type=Machines.validate, required=False)
 @click.option("--add-cron", "-a", is_flag=True, help=HELP["add-cron"])
 @click.option("--add-demo", "-d", is_flag=True, help=HELP["add-demo"])
 @click.option("--remove", "-r", type=int, help=HELP["remove"])
@@ -53,6 +51,7 @@ def main(machine, add_cron, add_demo, remove, no_write):
 
         result = cron_mng.save_to_server()
         print(f"[{result}]")
+
 
 def cli():
     return main(prog_name="coc")
