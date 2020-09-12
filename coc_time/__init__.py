@@ -16,8 +16,9 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 )
 @click.option("--add-cron", "-a", is_flag=True)
 @click.option("--add-demo", "-d", is_flag=True)
+@click.option("--remove", "-r", type=int)
 @click.option("--write", "-w", is_flag=True)
-def main(machine, add_cron, add_demo, write):
+def main(machine, add_cron, add_demo, remove, write):
     Machines.set_current(machine)
 
     print("Using machine %r" % Machines.get_current().name)
@@ -31,6 +32,9 @@ def main(machine, add_cron, add_demo, write):
     if add_demo:
         cron_mng.add_cron(demo=True)
         return
+
+    if remove:
+        cron_mng.remove_cron(remove)
 
     if write or add_cron or cron_mng.has_changed:
         if cron_mng.has_changed:
