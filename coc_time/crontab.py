@@ -83,11 +83,32 @@ class CrontabManager:
         command = self.generate_cron_line(time, reason)
         self.append(command)
 
-    def remove_cron(self, cron_number: int):
+    def edit_cron_message(self, cron_number: int):
+        split_str = "] "
+        cron_selected = self.get_cron(cron_number)
+        time_part, message = cron_selected.split(split_str)
+
+        click.echo(f"Old message: {message!r}")
+        new_message = click.prompt("Type new message:", default="")
+        new_message = new_message.strip().strip("'")
+
+        if not new_message:
+            raise click.Abort()
+
+        if not click.confirm(f"Confirm new message? ({new_message!r})", abort=True):
+            raise click.Abort()
+
+        new_cron = split_str.join([time_part, new_message]) + "'"
+        self.crons[cron_number - 1] = new_cron
+
+    def get_cron(self, cron_number: int) -> str:
         try:
-            cron_selected = self.crons[cron_number - 1]
+            return self.crons[cron_number - 1]
         except IndexError:
             raise click.UsageError(f"No cron found with id={cron_number}")
+
+    def remove_cron(self, cron_number: int):
+        cron_selected = self.get_cron(cron_number)
 
         cron_str = split(cron_selected)[-1]
         confirm = click.confirm(f"\nRemove cron {cron_str!r}?", abort=True)
@@ -127,7 +148,7 @@ class CrontabManager:
         new_crons = list(filter(self.filter, self.crons))
         removed_crons = set(self.crons) - set(new_crons)
 
-        if echo:
+        if echo and removed_crons:
             print("Removing crons:")
             for line in removed_crons:
                 print("-", split(line)[-1])
