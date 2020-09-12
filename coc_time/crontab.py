@@ -4,6 +4,8 @@ from hashlib import sha256
 from shlex import split
 from typing import Dict
 
+import click
+
 from .ssh import remote_execution
 from .utils import COMMAND_TEMPLATE, compute_time, input_int
 
@@ -80,6 +82,18 @@ class CrontabManager:
 
         command = self.generate_cron_line(time, reason)
         self.append(command)
+
+    def remove_cron(self, cron_number: int):
+        try:
+            cron_selected = self.crons[cron_number - 1]
+        except IndexError:
+            raise click.UsageError(f"No cron found with id={cron_number}")
+
+        cron_str = split(cron_selected)[-1]
+        confirm = click.confirm(f"\nRemove cron {cron_str!r}?", abort=True)
+
+        if confirm:
+            self.crons.remove(cron_selected)
 
     @staticmethod
     def gen_cron_time(time: datetime) -> str:
