@@ -2,12 +2,11 @@ from collections import namedtuple
 from datetime import datetime
 from hashlib import sha256
 from shlex import split
-from typing import Dict
 
 import click
 
 from .ssh import remote_execution
-from .utils import COMMAND_TEMPLATE, compute_time, input_int
+from .utils import COMMAND_TEMPLATE, compute_time
 
 Day = namedtuple("Day", "mins hours day month")
 
@@ -61,23 +60,23 @@ class CrontabManager:
         mins = date_kwargs.get("mins")
 
         if days is None:
-            days = input_int("Insert days: ")
+            days = click.prompt("Insert days", type=int, default=0)
 
         if hours is None:
-            hours = input_int("Insert hours: ")
+            hours = click.prompt("Insert hours", type=int, default=0)
 
         if mins is None:
-            mins = input_int("Insert minutes: ")
+            mins = click.prompt("Insert minutes", type=int, default=0)
 
         time = compute_time(days=days, hours=hours, mins=mins, dec=True)
         if demo:
-            print(f'[{time.strftime("%Y-%m-%d %H:%M")}]')
+            click.secho(f'[{time.strftime("%Y-%m-%d %H:%M")}]', fg="bright_green", bold=True)
             return
 
         if reason is None:
-            reason = input("Insert reason: ")
+            reason = click.prompt("Insert reason", default="")
             if not reason:
-                print("\nCancelled cron add")
+                click.secho("\nCancelled cron add", fg="bright_yellow", bold=True)
                 return
 
         command = self.generate_cron_line(time, reason)
@@ -88,8 +87,8 @@ class CrontabManager:
         cron_selected = self.get_cron(cron_number)
         time_part, message = cron_selected.split(split_str)
 
-        click.echo(f"Old message: {message!r}")
-        new_message = click.prompt("Type new message:", default="")
+        click.echo(f"\nOld message: {message!r}")
+        new_message = click.prompt("Type new message", default="")
         new_message = new_message.strip().strip("'")
 
         if not new_message:
@@ -149,9 +148,9 @@ class CrontabManager:
         removed_crons = set(self.crons) - set(new_crons)
 
         if echo and removed_crons:
-            print("Removing crons:")
+            click.secho("Removing crons:" ,fg="bright_magenta", bold=True)
             for line in removed_crons:
-                print("-", split(line)[-1])
+                click.secho("-" + split(line)[-1],fg="bright_magenta", bold=True)
 
         self.crons = new_crons
 

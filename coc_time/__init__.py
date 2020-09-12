@@ -43,11 +43,11 @@ def main(ctx, machine, no_write):
     """Clash of clans notifier manager."""
     Machines.set_current(machine)
 
-    print("Using machine %r" % Machines.get_current().name)
+    click.echo("Using machine %r" % Machines.get_current().name)
     cron_mng = CrontabManager.get_current_crons()
     ctx.obj = cron_mng
 
-    print(cron_mng)
+    click.echo(cron_mng)
 
 
 @main.resultcallback()
@@ -57,13 +57,13 @@ def process_result(cron_mng: CrontabManager, result, **kwargs):
 
     if not no_write and cron_mng.has_changed:
         if cron_mng.has_changed:
-            print(
+            click.echo(
                 "Updating server crontab [old=%d,new=%d]"
                 % (cron_mng.original_length, len(cron_mng))
             )
 
         result = cron_mng.save_to_server()
-        print(f"[{result}]")
+        click.echo(f"[{result}]")
 
 
 @main.command("add", help=HELP["add"])

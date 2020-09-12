@@ -3,6 +3,8 @@ from subprocess import CalledProcessError, run
 import sys
 from typing import Any
 
+import click
+
 from .utils import escape
 
 
@@ -52,5 +54,6 @@ def remote_execution(command: str) -> str:
         completed.check_returncode()
         return completed.stdout.decode("utf8")
     except CalledProcessError:
-        print("Error in remote execution: %s" % completed, sys.stderr)
-        sys.exit(1)
+        msg = f"Error in remote execution: {completed}"
+        click.secho(msg, sys.stderr, fg="bright_red", bold=True)
+        raise click.Abort()

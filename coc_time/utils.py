@@ -23,12 +23,3 @@ def compute_time(dec: bool = True, **date_kwargs: int) -> datetime:
     if dec:
         time -= timedelta(minutes=1)
     return time
-
-
-def input_int(msg: str) -> int:
-    value = input(msg)
-    try:
-        return int(value)
-    except ValueError:
-        print(f"{value!r} is not a valid integer", file=sys.stderr)
-        raise click.Abort()
