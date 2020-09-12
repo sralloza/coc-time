@@ -11,18 +11,21 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 HELP = {
     "add-cron": "Adds a new cron",
     "add-demo": "Shows the date but doesn't add a new cron",
-    "remove": "Removes the nth cron",
+    "edit": "Edits the message of the Nth cron",
     "no-write": "Force the no upload of a new cron",
+    "remove": "Removes the Nth cron",
 }
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
+@click.version_option(version=__version__)
 @click.argument("machine", default=Machines.coc, type=Machines.validate, required=False)
 @click.option("--add-cron", "-a", is_flag=True, help=HELP["add-cron"])
 @click.option("--add-demo", "-d", is_flag=True, help=HELP["add-demo"])
+@click.option("--edit-message", "-e", type=int, help=HELP["edit"])
 @click.option("--remove", "-r", type=int, help=HELP["remove"])
 @click.option("--no-write", "-w", is_flag=True, help=HELP["no-write"])
-def main(machine, add_cron, add_demo, remove, no_write):
+def main(machine, add_cron, add_demo, edit_message, remove, no_write):
     """Clash of clans notifier manager."""
 
     Machines.set_current(machine)
@@ -39,7 +42,10 @@ def main(machine, add_cron, add_demo, remove, no_write):
         cron_mng.add_cron(demo=True)
         return
 
-    if remove:
+    if edit_message is not None:
+        cron_mng.edit_cron_message(edit_message)
+
+    if remove is not None:
         cron_mng.remove_cron(remove)
 
     if not no_write and (add_cron or cron_mng.has_changed):
