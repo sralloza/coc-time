@@ -87,7 +87,7 @@ class CrontabManager:
         cron_selected = self.get_cron(cron_number)
         time_part, message = cron_selected.split(split_str)
 
-        new_message = click.edit(message)
+        new_message = click.edit(message.strip("'"))
 
         if not new_message:
             raise click.Abort()
