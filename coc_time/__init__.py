@@ -49,10 +49,14 @@ def main(ctx, machine, no_write):
 
     click.echo(cron_mng)
 
+    # Remove line after installing click-8.0.0
+    if ctx.invoked_subcommand is None:
+        main.result_callback(None, no_write=no_write)
+
 
 @main.resultcallback()
 @click.pass_obj
-def process_result(cron_mng: CrontabManager, result, **kwargs):
+def update_cron_if_needed(cron_mng: CrontabManager, result, **kwargs):
     no_write = kwargs.pop("no_write")
 
     if not no_write and cron_mng.has_changed:
