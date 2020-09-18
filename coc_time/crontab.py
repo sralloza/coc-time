@@ -15,16 +15,40 @@ Day = namedtuple("Day", "mins hours day month")
 
 
 class CronLine(UserString):
+    _split_str_a = "] "
+    _split_str_b = "["
+
     @property
     def type(self) -> str:
-        return get_type(self)
+        return get_type(self.new_project)
 
     @property
     def color(self) -> Optional[str]:
-        return get_color(self)
+        return get_color(self.new_project)
 
+    @property
+    def message(self) -> str:
+        return self.split(self._split_str_a)[-1]
+
+    @property
+    def old_project(self):
+        return self.message.split("-")[0].strip()
+
+    @property
+    def new_project(self):
+        return self.message.split("-")[-1].strip()
+
+    @property
+    def dt(self):
+        return self.split(self._split_str_a)[0].split(self._split_str_b)[-1]
 
 class CrontabManager:
+    def replace_message(self, new_message: str):
+        new_message += "'"
+        new_cron_line = self.replace(self.message, new_message)
+        self.__init__(new_cron_line)
+
+
     cron_tmp_path = "/tmp/clash-of-clans-cron"
 
     def __init__(self, iterable):

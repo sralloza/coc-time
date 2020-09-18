@@ -42,11 +42,9 @@ type_to_color = {
 }
 
 
-def get_type(cron_line: str) -> str:
-    cron_line = cron_line.split("-")[-1]
-
+def get_type(project: str) -> str:
     for key, value in types.items():
-        if key in cron_line:
+        if key in project:
             return value
     return ""
 
@@ -54,6 +52,6 @@ def get_type(cron_line: str) -> str:
 ColorStr = Optional[str]
 
 
-def get_color(cron_line: str) -> ColorStr:
-    cron_type = get_type(cron_line)
+def get_color(project: str) -> ColorStr:
+    cron_type = get_type(project)
     return type_to_color.get(cron_type, "bright_cyan")
