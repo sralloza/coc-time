@@ -55,5 +55,5 @@ def remote_execution(command: str) -> str:
         return completed.stdout.decode("utf8")
     except CalledProcessError:
         msg = f"Error in remote execution: {completed}"
-        click.secho(msg, sys.stderr, fg="bright_red", bold=True)
+        click.secho(msg, sys.stderr, fg="bright_red")
         raise click.Abort()

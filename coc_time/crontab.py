@@ -1,21 +1,34 @@
-from collections import namedtuple
+from collections import UserString, namedtuple
 from datetime import datetime
 from hashlib import sha256
 from shlex import split
+from typing import Optional
 
 import click
 
+from .exceptions import InvalidMethodError
 from .ssh import remote_execution
+from .types import get_color, get_type
 from .utils import COMMAND_TEMPLATE, compute_time
 
 Day = namedtuple("Day", "mins hours day month")
+
+
+class CronLine(UserString):
+    @property
+    def type(self) -> str:
+        return get_type(self)
+
+    @property
+    def color(self) -> Optional[str]:
+        return get_color(self)
 
 
 class CrontabManager:
     cron_tmp_path = "/tmp/clash-of-clans-cron"
 
     def __init__(self, iterable):
-        self.crons = list(iterable)
+        self.crons = [CronLine(x) for x in iterable]
         self.original_length = len(self.crons)
         self.original_hash = self.calculate_hash()
         self.remove_comments()
@@ -35,23 +48,30 @@ class CrontabManager:
         return len(self.crons)
 
     def __str__(self) -> str:
-        if not self:
-            return "<emtpy cron>"
-        return "\n".join([split(x)[-1] for x in self])
+        raise InvalidMethodError("To print the crontab manager, use .print()")
 
     @property
     def has_changed(self):
         return self.original_hash != self.calculate_hash()
 
+    def print(self, color=True):
+        if not self:
+            click.secho("<emtpy cron>", fg="bright_red")
+
+        for line in self:
+            short_line = split(str(line))[-1]
+            fg_color = line.color if color else None
+            click.secho(short_line, fg=fg_color)
+
     def calculate_hash(self) -> str:
-        data = str(self).encode("utf8")
+        data = str(self.crons).encode("utf8")
         sha = sha256()
         sha.update(data)
         return sha.hexdigest()
 
     def append(self, cron_line: str):
         if cron_line not in self:
-            self.crons.append(cron_line)
+            self.crons.append(CronLine(cron_line))
             self.sort()
 
     def add_cron(self, reason: str = None, demo: bool = False, **date_kwargs: int):
@@ -70,13 +90,13 @@ class CrontabManager:
 
         time = compute_time(days=days, hours=hours, mins=mins, dec=True)
         if demo:
-            click.secho(f'[{time.strftime("%Y-%m-%d %H:%M")}]', fg="bright_green", bold=True)
+            click.secho(f'[{time.strftime("%Y-%m-%d %H:%M")}]', fg="bright_green")
             return
 
         if reason is None:
             reason = click.prompt("Insert reason", default="")
             if not reason:
-                click.secho("\nCancelled cron add", fg="bright_yellow", bold=True)
+                click.secho("\nCancelled cron add", fg="bright_yellow")
                 return
 
         command = self.generate_cron_line(time, reason)
@@ -97,9 +117,9 @@ class CrontabManager:
             raise click.Abort()
 
         new_cron = split_str.join([time_part, new_message]) + "'"
-        self.crons[cron_number - 1] = new_cron
+        self.crons[cron_number - 1] = CronLine(new_cron)
 
-    def get_cron(self, cron_number: int) -> str:
+    def get_cron(self, cron_number: int) -> CronLine:
         try:
             return self.crons[cron_number - 1]
         except IndexError:
@@ -108,7 +128,7 @@ class CrontabManager:
     def remove_cron(self, cron_number: int):
         cron_selected = self.get_cron(cron_number)
 
-        cron_str = split(cron_selected)[-1]
+        cron_str = split(str(cron_selected))[-1]
         confirm = click.confirm(f"\nRemove cron {cron_str!r}?", abort=True)
 
         if confirm:
@@ -135,8 +155,8 @@ class CrontabManager:
         return Day(mins, hours, day, month)
 
     @classmethod
-    def sorter(cls, line: str):
-        day = cls.splitline(line)
+    def sorter(cls, line: CronLine):
+        day = cls.splitline(str(line))
         return day.month, day.day, day.hours, day.mins
 
     def remove_comments(self):
@@ -147,9 +167,9 @@ class CrontabManager:
         removed_crons = set(self.crons) - set(new_crons)
 
         if echo and removed_crons:
-            click.secho("Removing crons:" ,fg="bright_magenta", bold=True)
+            click.secho("Removing crons:", fg="bright_magenta")
             for line in removed_crons:
-                click.secho("-" + split(line)[-1],fg="bright_magenta", bold=True)
+                click.secho("-" + split(str(line))[-1], fg="bright_magenta")
 
         self.crons = new_crons
 
