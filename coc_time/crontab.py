@@ -1,10 +1,10 @@
-from collections import UserString, namedtuple
-from datetime import datetime
+from collections import UserList, UserString, namedtuple
 from hashlib import sha256
 from shlex import split
 from typing import Optional
 
 import click
+import pendulum
 
 from .exceptions import InvalidMethodError
 from .ssh import remote_execution
@@ -15,37 +15,51 @@ Day = namedtuple("Day", "mins hours day month")
 
 
 class CronLine(UserString):
+    _split_str_a = "] "
+    _split_str_b = "["
+
     @property
     def type(self) -> str:
-        return get_type(self)
+        return get_type(self.new_project)
 
     @property
     def color(self) -> Optional[str]:
-        return get_color(self)
+        return get_color(self.new_project)
+
+    @property
+    def message(self) -> str:
+        return self.split(self._split_str_a)[-1]
+
+    @property
+    def old_project(self) -> str:
+        return self.message.split("-")[0].strip()
+
+    @property
+    def new_project(self) -> str:
+        return self.message.split("-")[-1].strip()
+
+    @property
+    def dt(self) -> pendulum.DateTime:
+        dt_str = self.split(self._split_str_a)[0].split(self._split_str_b)[-1]
+        return pendulum.parse(dt_str)
+
+    def replace_message(self, new_message: str):
+        new_message += "'"
+        new_cron_line = self.replace(self.message, new_message)
+        self.__init__(new_cron_line)
 
 
-class CrontabManager:
+class CrontabManager(UserList):
     cron_tmp_path = "/tmp/clash-of-clans-cron"
 
     def __init__(self, iterable):
-        self.crons = [CronLine(x) for x in iterable]
-        self.original_length = len(self.crons)
+        crons = [CronLine(x) for x in iterable]
+        super().__init__(crons)
+        self.original_length = len(self)
         self.original_hash = self.calculate_hash()
         self.remove_comments()
         self.remove_old_crons()
         self.sort()
-
-    def __bool__(self):
-        return bool(self.crons)
-
-    def __contains__(self, cron_line: str):
-        return cron_line in self.crons
-
-    def __iter__(self):
-        return iter(self.crons)
-
-    def __len__(self):
-        return len(self.crons)
 
     def __str__(self) -> str:
         raise InvalidMethodError("To print the crontab manager, use .print()")
@@ -64,14 +78,14 @@ class CrontabManager:
             click.secho(short_line, fg=fg_color)
 
     def calculate_hash(self) -> str:
-        data = str(self.crons).encode("utf8")
+        data = "".join([str(x) for x in self]).encode("utf8")
         sha = sha256()
         sha.update(data)
         return sha.hexdigest()
 
     def append(self, cron_line: str):
         if cron_line not in self:
-            self.crons.append(CronLine(cron_line))
+            super().append(CronLine(cron_line))
             self.sort()
 
     def add_cron(self, reason: str = None, demo: bool = False, **date_kwargs: int):
@@ -103,11 +117,9 @@ class CrontabManager:
         self.append(command)
 
     def edit_cron_message(self, cron_number: int):
-        split_str = "] "
         cron_selected = self.get_cron(cron_number)
-        time_part, message = cron_selected.split(split_str)
 
-        new_message = click.edit(message.strip("'"))
+        new_message = click.edit(cron_selected.message.strip("'"))
 
         if not new_message:
             raise click.Abort()
@@ -116,12 +128,11 @@ class CrontabManager:
         if not click.confirm(f"\nConfirm new message? ({new_message!r})", abort=True):
             raise click.Abort()
 
-        new_cron = split_str.join([time_part, new_message]) + "'"
-        self.crons[cron_number - 1] = CronLine(new_cron)
+        cron_selected.replace_message(new_message)
 
     def get_cron(self, cron_number: int) -> CronLine:
         try:
-            return self.crons[cron_number - 1]
+            return self[cron_number - 1]
         except IndexError:
             raise click.UsageError(f"No cron found with id={cron_number}")
 
@@ -132,13 +143,13 @@ class CrontabManager:
         confirm = click.confirm(f"\nRemove cron {cron_str!r}?", abort=True)
 
         if confirm:
-            self.crons.remove(cron_selected)
+            self.remove(cron_selected)
 
     @staticmethod
-    def gen_cron_time(time: datetime) -> str:
+    def gen_cron_time(time: pendulum.DateTime) -> str:
         return f"{time.minute:2d} {time.hour:2d} {time.day:2d} {time.month:2d} *"
 
-    def generate_cron_line(self, time: datetime, content: str = "") -> str:
+    def generate_cron_line(self, time: pendulum.DateTime, content: str = "") -> str:
         ts = time.strftime("%Y-%m-%d %H:%M")
         content = f"[{ts}] {content}"
         cron_time = self.gen_cron_time(time)
@@ -146,7 +157,7 @@ class CrontabManager:
         return cron_time + " " + COMMAND_TEMPLATE.format(**fmt)
 
     def sort(self):
-        self.crons.sort(key=self.sorter)
+        super().sort(key=self.sorter)
 
     @staticmethod
     def splitline(line: str) -> Day:
@@ -160,24 +171,25 @@ class CrontabManager:
         return day.month, day.day, day.hours, day.mins
 
     def remove_comments(self):
-        self.crons = list(filter(lambda x: not x.startswith("#"), self.crons))
+        new_crons = list(filter(lambda x: not x.startswith("#"), self))
+        super().__init__(new_crons)
 
     def remove_old_crons(self, echo=True):
-        new_crons = list(filter(self.filter, self.crons))
-        removed_crons = set(self.crons) - set(new_crons)
+        new_crons = list(filter(self.filter, self))
+        removed_crons = set(self) - set(new_crons)
 
         if echo and removed_crons:
             click.secho("Removing crons:", fg="bright_magenta")
             for line in removed_crons:
                 click.secho("-" + split(str(line))[-1], fg="bright_magenta")
 
-        self.crons = new_crons
+        super().__init__(new_crons)
 
     @classmethod
     def filter(cls, line):
         day = cls.splitline(line)
-        current = datetime.now()
-        ts = datetime(
+        current = pendulum.now()
+        ts = pendulum.datetime(
             month=day.month,
             day=day.day,
             hour=day.hours,
