@@ -14,6 +14,7 @@ HELP = {
     "edit": "Edits the message of the Nth cron",
     "no-write": "Force the no-upload of a new cron",
     "remove": "Removes the Nth cron",
+    "no-color": "disables colors",
 }
 
 
@@ -38,8 +39,9 @@ class MyGroup(click.Group):
 @click.version_option(version=__version__)
 @click.pass_context
 @click.argument("machine", default=Machines.coc, type=Machines.validate, required=False)
+@click.option("--no-color", is_flag=True, help=HELP["no-color"])
 @click.option("--no-write", "-w", is_flag=True, help=HELP["no-write"])
-def main(ctx, machine, no_write):
+def main(ctx, machine, no_write, no_color):
     """Clash of clans notifier manager."""
     Machines.set_current(machine)
 
@@ -47,7 +49,7 @@ def main(ctx, machine, no_write):
     cron_mng = CrontabManager.get_current_crons()
     ctx.obj = cron_mng
 
-    click.echo(cron_mng)
+    cron_mng.print(color=not no_color)
 
 
 @main.resultcallback()
