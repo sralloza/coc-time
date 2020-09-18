@@ -1,7 +1,4 @@
-from datetime import datetime, timedelta
-import sys
-
-import click
+import pendulum
 
 COMMAND_TEMPLATE = "/home/coc/notifications/notify.sh '{title}' '{content}'"
 QUOTE_CHARS = {'"'}
@@ -14,12 +11,12 @@ def escape(msg: str) -> str:
     return msg
 
 
-def compute_time(dec: bool = True, **date_kwargs: int) -> datetime:
+def compute_time(dec: bool = True, **date_kwargs: int) -> pendulum.DateTime:
     days = date_kwargs.get("days", 0)
     hours = date_kwargs.get("hours", 0)
     mins = date_kwargs.get("mins", 0)
 
-    time = datetime.now() + timedelta(days=days, hours=hours, minutes=mins)
+    time = pendulum.now() + pendulum.Duration(days=days, hours=hours, minutes=mins)
     if dec:
-        time -= timedelta(minutes=1)
+        time -= pendulum.Duration(minutes=1)
     return time
