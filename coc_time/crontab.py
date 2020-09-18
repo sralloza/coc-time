@@ -31,6 +31,10 @@ class CronLine(UserString):
         return self.split(self._split_str_a)[-1]
 
     @property
+    def notification(self) -> str:
+        return split(str(self))[-1]
+
+    @property
     def old_project(self) -> str:
         return self.message.split("-")[0].strip()
 
@@ -71,11 +75,12 @@ class CrontabManager(UserList):
     def print(self, color=True):
         if not self:
             click.secho("<emtpy cron>", fg="bright_red")
+            return
 
         for line in self:
-            short_line = split(str(line))[-1]
             fg_color = line.color if color else None
-            click.secho(short_line, fg=fg_color)
+            click.secho(line.notification, fg=fg_color)
+        click.echo()
 
     def calculate_hash(self) -> str:
         data = "".join([str(x) for x in self]).encode("utf8")
@@ -88,10 +93,10 @@ class CrontabManager(UserList):
             super().append(CronLine(cron_line))
             self.sort()
 
-    def add_cron(self, reason: str = None, demo: bool = False, **date_kwargs: int):
-        days = date_kwargs.get("days")
-        hours = date_kwargs.get("hours")
-        mins = date_kwargs.get("mins")
+    def add_cron(self, reason: str = None, demo: bool = False, **date_kwargs):
+        days = date_kwargs.pop("days", None)
+        hours = date_kwargs.pop("hours", None)
+        mins = date_kwargs.pop("mins", None)
 
         if days is None:
             days = click.prompt("Insert days", type=int, default=0)
@@ -102,9 +107,11 @@ class CrontabManager(UserList):
         if mins is None:
             mins = click.prompt("Insert minutes", type=int, default=0)
 
-        time = compute_time(days=days, hours=hours, mins=mins, dec=True)
+        time = compute_time(days=days, hours=hours, mins=mins, **date_kwargs)
         if demo:
-            click.secho(f'[{time.strftime("%Y-%m-%d %H:%M")}]', fg="bright_green")
+            click.secho(
+                f'[{time.strftime("%Y-%m-%d %H:%M")}]', fg="bright_green", bold=True
+            )
             return
 
         if reason is None:
@@ -116,6 +123,11 @@ class CrontabManager(UserList):
         command = self.generate_cron_line(time, reason)
         self.append(command)
 
+    def add_extending(self, cron_number: int):
+        base_cron = self.get_cron(cron_number)
+        click.secho(f"Extending {base_cron.notification}")
+        self.add_cron(base_date=base_cron.dt)
+
     def edit_cron_message(self, cron_number: int):
         cron_selected = self.get_cron(cron_number)
 
@@ -125,7 +137,7 @@ class CrontabManager(UserList):
             raise click.Abort()
 
         new_message = new_message.strip().strip("'")
-        if not click.confirm(f"\nConfirm new message? ({new_message!r})", abort=True):
+        if not click.confirm(f"Confirm new message? ({new_message!r})", abort=True):
             raise click.Abort()
 
         cron_selected.replace_message(new_message)
@@ -139,8 +151,9 @@ class CrontabManager(UserList):
     def remove_cron(self, cron_number: int):
         cron_selected = self.get_cron(cron_number)
 
-        cron_str = split(str(cron_selected))[-1]
-        confirm = click.confirm(f"\nRemove cron {cron_str!r}?", abort=True)
+        confirm = click.confirm(
+            f"\nRemove cron {cron_selected.notification!r}?", abort=True
+        )
 
         if confirm:
             self.remove(cron_selected)
@@ -181,7 +194,7 @@ class CrontabManager(UserList):
         if echo and removed_crons:
             click.secho("Removing crons:", fg="bright_magenta")
             for line in removed_crons:
-                click.secho("-" + split(str(line))[-1], fg="bright_magenta")
+                click.secho("-" + line.notification, fg="bright_magenta")
 
         super().__init__(new_crons)
 

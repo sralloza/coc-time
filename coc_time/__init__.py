@@ -10,6 +10,7 @@ del get_versions
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 HELP = {
     "add": "Adds a new cron",
+    "add-extending": "Adds a new cron based on the datetime of other",
     "demo": "Shows the date adding the given timedelta",
     "edit": "Edits the message of the Nth cron",
     "no-write": "Force the no-upload of a new cron",
@@ -76,6 +77,13 @@ def update_cron_if_needed(cron_mng: CrontabManager, result, **kwargs):
 @click.pass_obj
 def add_cron(cron_mng: CrontabManager):
     cron_mng.add_cron()
+
+
+@main.command("add-extending", help=HELP["add-extending"])
+@click.argument("cron_position", type=int)
+@click.pass_obj
+def add_extending(cron_mng: CrontabManager, cron_position: int):
+    cron_mng.add_extending(cron_position)
 
 
 @main.command("demo", help=HELP["demo"])
