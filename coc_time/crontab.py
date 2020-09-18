@@ -93,10 +93,10 @@ class CrontabManager(UserList):
             super().append(CronLine(cron_line))
             self.sort()
 
-    def add_cron(self, reason: str = None, demo: bool = False, **date_kwargs: int):
-        days = date_kwargs.get("days")
-        hours = date_kwargs.get("hours")
-        mins = date_kwargs.get("mins")
+    def add_cron(self, reason: str = None, demo: bool = False, **date_kwargs):
+        days = date_kwargs.pop("days", None)
+        hours = date_kwargs.pop("hours", None)
+        mins = date_kwargs.pop("mins", None)
 
         if days is None:
             days = click.prompt("Insert days", type=int, default=0)
@@ -107,9 +107,11 @@ class CrontabManager(UserList):
         if mins is None:
             mins = click.prompt("Insert minutes", type=int, default=0)
 
-        time = compute_time(days=days, hours=hours, mins=mins, dec=True)
+        time = compute_time(days=days, hours=hours, mins=mins, **date_kwargs)
         if demo:
-            click.secho(f'[{time.strftime("%Y-%m-%d %H:%M")}]', fg="bright_green")
+            click.secho(
+                f'[{time.strftime("%Y-%m-%d %H:%M")}]', fg="bright_green", bold=True
+            )
             return
 
         if reason is None:
@@ -120,6 +122,11 @@ class CrontabManager(UserList):
 
         command = self.generate_cron_line(time, reason)
         self.append(command)
+
+    def add_extending(self, cron_number: int):
+        base_cron = self.get_cron(cron_number)
+        click.secho(f"Extending {base_cron.notification}")
+        self.add_cron(base_date=base_cron.dt)
 
     def edit_cron_message(self, cron_number: int):
         cron_selected = self.get_cron(cron_number)

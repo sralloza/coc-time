@@ -11,12 +11,16 @@ def escape(msg: str) -> str:
     return msg
 
 
-def compute_time(dec: bool = True, **date_kwargs: int) -> pendulum.DateTime:
-    days = date_kwargs.get("days", 0)
-    hours = date_kwargs.get("hours", 0)
-    mins = date_kwargs.get("mins", 0)
+def compute_time(**date_kwargs: int) -> pendulum.DateTime:
+    base_date = date_kwargs.pop("base_date", 0)
+    days = date_kwargs.pop("days", 0)
+    hours = date_kwargs.pop("hours", 0)
+    mins = date_kwargs.pop("mins", 0)
 
-    time = pendulum.now() + pendulum.Duration(days=days, hours=hours, minutes=mins)
-    if dec:
-        time -= pendulum.Duration(minutes=1)
+    if base_date:
+        time = base_date
+    else:
+        time = pendulum.now()
+
+    time += pendulum.Duration(days=days, hours=hours, minutes=mins -1)
     return time
