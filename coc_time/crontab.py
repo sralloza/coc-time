@@ -60,10 +60,10 @@ class CrontabManager(UserList):
         crons = [CronLine(x) for x in iterable]
         super().__init__(crons)
         self.original_length = len(self)
+        self.sort()
         self.original_hash = self.calculate_hash()
         self.remove_comments()
         self.remove_old_crons()
-        self.sort()
 
     def __str__(self) -> str:
         raise InvalidMethodError("To print the crontab manager, use .print()")
@@ -74,7 +74,7 @@ class CrontabManager(UserList):
 
     def print(self, color=True):
         if not self:
-            click.secho("<emtpy cron>", fg="bright_red")
+            click.secho("<emtpy cron>\n", fg="bright_red")
             return
 
         for line in self:
@@ -182,14 +182,17 @@ class CrontabManager(UserList):
 
     def remove_old_crons(self, echo=True):
         new_crons = list(filter(self.filter, self))
-        removed_crons = set(self) - set(new_crons)
+        removed_crons = list(set(self) - set(new_crons))
+        removed_crons.sort(key=self.sorter)
 
-        if echo and removed_crons:
-            click.secho("Removing crons:", fg="bright_magenta")
+        if removed_crons:
+            if echo:
+                click.secho("Removing crons:")
             for line in removed_crons:
-                click.secho("-" + line.notification, fg="bright_magenta")
+                click.secho("-" + line.notification)
+            click.echo()
 
-        super().__init__(new_crons)
+            super().__init__(new_crons)
 
     @classmethod
     def filter(cls, line):
