@@ -208,13 +208,13 @@ class CrontabManager(UserList):
         return self
 
     def save_to_server(self) -> str:
-        if not self:
-            return "no cron lines to save"
-
         commands = []
         for i, cron_line in enumerate(self):
             char = ">>" if i else ">"
             commands.append(f'echo "{cron_line}" {char} {self.cron_tmp_path}')
+
+        if not commands:
+            commands.append(f'touch {self.cron_tmp_path}')
 
         commands.append(f"crontab {self.cron_tmp_path}")
         commands.append(f"rm {self.cron_tmp_path}")
