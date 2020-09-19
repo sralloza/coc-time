@@ -60,10 +60,10 @@ class CrontabManager(UserList):
         crons = [CronLine(x) for x in iterable]
         super().__init__(crons)
         self.original_length = len(self)
+        self.sort()
         self.original_hash = self.calculate_hash()
         self.remove_comments()
         self.remove_old_crons()
-        self.sort()
 
     def __str__(self) -> str:
         raise InvalidMethodError("To print the crontab manager, use .print()")
@@ -74,7 +74,7 @@ class CrontabManager(UserList):
 
     def print(self, color=True):
         if not self:
-            click.secho("<emtpy cron>", fg="bright_red")
+            click.secho("<emtpy cron>\n", fg="bright_red")
             return
 
         for line in self:
@@ -172,16 +172,9 @@ class CrontabManager(UserList):
     def sort(self):
         super().sort(key=self.sorter)
 
-    @staticmethod
-    def splitline(line: str) -> Day:
-        mins, hours, day, month, *_ = line.split()
-        mins, hours, day, month, *_ = map(int, (mins, hours, day, month))
-        return Day(mins, hours, day, month)
-
     @classmethod
     def sorter(cls, line: CronLine):
-        day = cls.splitline(str(line))
-        return day.month, day.day, day.hours, day.mins
+        return line.dt
 
     def remove_comments(self):
         new_crons = list(filter(lambda x: not x.startswith("#"), self))
@@ -189,29 +182,22 @@ class CrontabManager(UserList):
 
     def remove_old_crons(self, echo=True):
         new_crons = list(filter(self.filter, self))
-        removed_crons = set(self) - set(new_crons)
+        removed_crons = list(set(self) - set(new_crons))
+        removed_crons.sort(key=self.sorter)
 
-        if echo and removed_crons:
-            click.secho("Removing crons:", fg="bright_magenta")
+        if removed_crons:
+            if echo:
+                click.secho("Removing crons:")
             for line in removed_crons:
-                click.secho("-" + line.notification, fg="bright_magenta")
+                click.secho("-" + line.notification)
+            click.echo()
 
-        super().__init__(new_crons)
+            super().__init__(new_crons)
 
     @classmethod
     def filter(cls, line):
-        day = cls.splitline(line)
         current = pendulum.now()
-        ts = pendulum.datetime(
-            month=day.month,
-            day=day.day,
-            hour=day.hours,
-            minute=day.mins,
-            year=current.year,
-        )
-        if current > ts:
-            return False
-        return True
+        return current < line.dt
 
     @classmethod
     def get_current_crons(cls) -> "CrontabManager":
