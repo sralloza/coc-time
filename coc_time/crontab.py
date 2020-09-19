@@ -45,7 +45,7 @@ class CronLine(UserString):
     @property
     def dt(self) -> pendulum.DateTime:
         dt_str = self.split(self._split_str_a)[0].split(self._split_str_b)[-1]
-        return pendulum.parse(dt_str)
+        return pendulum.parse(dt_str, tz="local")
 
     def replace_message(self, new_message: str):
         new_message += "'"
@@ -214,7 +214,7 @@ class CrontabManager(UserList):
             commands.append(f'echo "{cron_line}" {char} {self.cron_tmp_path}')
 
         if not commands:
-            commands.append(f'touch {self.cron_tmp_path}')
+            commands.append(f"touch {self.cron_tmp_path}")
 
         commands.append(f"crontab {self.cron_tmp_path}")
         commands.append(f"rm {self.cron_tmp_path}")
