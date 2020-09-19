@@ -172,16 +172,9 @@ class CrontabManager(UserList):
     def sort(self):
         super().sort(key=self.sorter)
 
-    @staticmethod
-    def splitline(line: str) -> Day:
-        mins, hours, day, month, *_ = line.split()
-        mins, hours, day, month, *_ = map(int, (mins, hours, day, month))
-        return Day(mins, hours, day, month)
-
     @classmethod
     def sorter(cls, line: CronLine):
-        day = cls.splitline(str(line))
-        return day.month, day.day, day.hours, day.mins
+        return line.dt
 
     def remove_comments(self):
         new_crons = list(filter(lambda x: not x.startswith("#"), self))
