@@ -200,18 +200,8 @@ class CrontabManager(UserList):
 
     @classmethod
     def filter(cls, line):
-        day = cls.splitline(line)
         current = pendulum.now()
-        ts = pendulum.datetime(
-            month=day.month,
-            day=day.day,
-            hour=day.hours,
-            minute=day.mins,
-            year=current.year,
-        )
-        if current > ts:
-            return False
-        return True
+        return current < line.dt
 
     @classmethod
     def get_current_crons(cls) -> "CrontabManager":
