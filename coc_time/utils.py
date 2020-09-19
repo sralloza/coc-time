@@ -11,7 +11,7 @@ def escape(msg: str) -> str:
     return msg
 
 
-def compute_time(**date_kwargs: int) -> pendulum.DateTime:
+def compute_time(**date_kwargs) -> pendulum.DateTime:
     base_date = date_kwargs.pop("base_date", 0)
     days = date_kwargs.pop("days", 0)
     hours = date_kwargs.pop("hours", 0)
@@ -22,5 +22,5 @@ def compute_time(**date_kwargs: int) -> pendulum.DateTime:
     else:
         time = pendulum.now()
 
-    time += pendulum.Duration(days=days, hours=hours, minutes=mins -1)
+    time += pendulum.Duration(days=days, hours=hours, minutes=mins - 1)
     return time

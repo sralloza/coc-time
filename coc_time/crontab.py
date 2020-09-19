@@ -214,7 +214,7 @@ class CrontabManager(UserList):
             commands.append(f'echo "{cron_line}" {char} {self.cron_tmp_path}')
 
         if not commands:
-            commands.append(f'touch {self.cron_tmp_path}')
+            commands.append(f"touch {self.cron_tmp_path}")
 
         commands.append(f"crontab {self.cron_tmp_path}")
         commands.append(f"rm {self.cron_tmp_path}")
