@@ -45,7 +45,7 @@ class CronLine(UserString):
     @property
     def dt(self) -> pendulum.DateTime:
         dt_str = self.split(self._split_str_a)[0].split(self._split_str_b)[-1]
-        return pendulum.parse(dt_str)
+        return pendulum.parse(dt_str, tz="local")
 
     def replace_message(self, new_message: str):
         new_message += "'"
