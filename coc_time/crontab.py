@@ -35,6 +35,16 @@ class CronLine(UserString):
         return split(str(self))[-1]
 
     @property
+    def diff_notification(self) -> str:
+        dt = self.dt
+        diff = (dt - pendulum.now().replace(microsecond=0)).as_interval()
+        new_str = (
+            f"{diff.days:2d} {diff.hours:02d}:"
+            f"{diff.minutes:02d}:{diff.remaining_seconds:02d}"
+        )
+        return self.notification.replace(dt.format("YYYY-MM-DD HH:mm"), new_str)
+
+    @property
     def old_project(self) -> str:
         return self.message.split("-")[0].strip()
 
@@ -72,14 +82,17 @@ class CrontabManager(UserList):
     def has_changed(self):
         return self.original_hash != self.calculate_hash()
 
-    def print(self, color=True):
+    def print(self, color=True, diff=False):
         if not self:
             click.secho("<emtpy cron>\n", fg="bright_red")
             return
 
         for line in self:
             fg_color = line.color if color else None
-            click.secho(line.notification, fg=fg_color)
+            if diff:
+                click.secho(line.diff_notification, fg=fg_color)
+            else:
+                click.secho(line.notification, fg=fg_color)
         click.echo()
 
     def calculate_hash(self) -> str:

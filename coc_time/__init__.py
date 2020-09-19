@@ -9,13 +9,14 @@ del get_versions
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 HELP = {
-    "add": "Adds a new cron",
     "add-extending": "Adds a new cron based on the datetime of other",
+    "add": "Adds a new cron",
     "demo": "Shows the date adding the given timedelta",
+    "diff": "Show relative time instead of absolute",
     "edit": "Edits the message of the Nth cron",
+    "no-color": "disables colors",
     "no-write": "Force the no-upload of a new cron",
     "remove": "Removes the Nth cron",
-    "no-color": "disables colors",
 }
 
 
@@ -40,9 +41,10 @@ class MyGroup(click.Group):
 @click.version_option(version=__version__)
 @click.pass_context
 @click.argument("machine", default=Machines.coc, type=Machines.validate, required=False)
+@click.option("--diff", is_flag=True, help=HELP["diff"])
 @click.option("--no-color", is_flag=True, help=HELP["no-color"])
 @click.option("--no-write", "-w", is_flag=True, help=HELP["no-write"])
-def main(ctx, machine, no_write, no_color):
+def main(ctx, machine, no_write, no_color, diff):
     """Clash of clans notifier manager."""
     Machines.set_current(machine)
 
@@ -50,7 +52,7 @@ def main(ctx, machine, no_write, no_color):
     cron_mng = CrontabManager.get_current_crons()
     ctx.obj = cron_mng
 
-    cron_mng.print(color=not no_color)
+    cron_mng.print(color=not no_color, diff=diff)
 
     # Remove line after installing click-8.0.0
     if ctx.invoked_subcommand is None:
