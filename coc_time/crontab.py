@@ -50,6 +50,8 @@ class CronLine(UserString):
 
     @property
     def new_project(self) -> str:
+        if "-" not in self.message:
+            return ""
         return self.message.split("-")[-1].strip()
 
     @property
