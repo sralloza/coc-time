@@ -1,9 +1,10 @@
+import sys
 from enum import Enum
 from subprocess import CalledProcessError, run
-import sys
 from typing import Any
 
 import click
+from tenacity import TryAgain, retry, stop_after_attempt
 
 from .utils import escape
 
@@ -46,7 +47,8 @@ class _Static:
     _current_machine: Machines = Machines.coc
 
 
-def remote_execution(command: str) -> str:
+@retry(stop=stop_after_attempt(5))
+def remote_execution(command: str, retries=5) -> str:
     remote_command = f'ssh {Machines.get_current().name} "{escape(command)}"'
     completed = run(remote_command, capture_output=True, shell=True)
 
@@ -54,6 +56,15 @@ def remote_execution(command: str) -> str:
         completed.check_returncode()
         return completed.stdout.decode("utf8")
     except CalledProcessError:
+        err = completed.stderr.decode("utf8").lower()
+        if "connection timed out" in err:
+            retries -= 1
+            if retries:
+                click.secho(
+                    "Connection error, retrying", sys.stderr, fg="bright_yellow"
+                )
+                raise TryAgain
+
         msg = f"Error in remote execution: {completed}"
         click.secho(msg, sys.stderr, fg="bright_red")
         raise click.Abort()
