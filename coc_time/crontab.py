@@ -7,6 +7,7 @@ import click
 import pendulum
 
 from .exceptions import InvalidMethodError
+from .gems import gems_to_time
 from .ssh import remote_execution
 from .types import get_color, get_type
 from .utils import COMMAND_TEMPLATE, compute_time
@@ -142,6 +143,12 @@ class CrontabManager(UserList):
         base_cron = self.get_cron(cron_number)
         click.secho(f"Extending {base_cron.notification}")
         self.add_cron(base_date=base_cron.dt)
+
+    def add_gems(self, gems: int, demo=False):
+        duration = gems_to_time(gems - 1)
+        minutes = duration.total_minutes()
+        date_kwargs = dict(days=0, hours=0, mins=minutes)
+        return self.add_cron(demo=demo, **date_kwargs)
 
     def edit_cron_message(self, cron_number: int):
         cron_selected = self.get_cron(cron_number)
