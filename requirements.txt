@@ -2,3 +2,4 @@ click
 fuzzywuzzy[speedup]
 pendulum
 pydantic
+tenacity
