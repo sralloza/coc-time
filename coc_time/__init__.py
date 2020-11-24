@@ -11,6 +11,8 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 HELP = {
     "add-extending": "Adds a new cron based on the datetime of other",
     "add": "Adds a new cron",
+    "add-gems": "Adds a new cron given the gem cost",
+    "add-gems-demo": "Adds a new cron given the gem cost in demo mode",
     "demo": "Shows the date adding the given timedelta",
     "diff": "Show relative time instead of absolute",
     "edit": "Edits the message of the Nth cron",
@@ -86,6 +88,20 @@ def add_cron(cron_mng: CrontabManager):
 @click.pass_obj
 def add_extending(cron_mng: CrontabManager, cron_position: int):
     cron_mng.add_extending(cron_position)
+
+
+@main.command("add-gems", help=HELP["add-gems"])
+@click.argument("gems", type=int)
+@click.pass_obj
+def add_gems(cron_mng: CrontabManager, gems: int):
+    cron_mng.add_gems(gems)
+
+
+@main.command("add-gems-demo", help=HELP["add-gems-demo"])
+@click.argument("gems", type=int)
+@click.pass_obj
+def add_gems(cron_mng: CrontabManager, gems: int):
+    cron_mng.add_gems(gems, demo=True)
 
 
 @main.command("demo", help=HELP["demo"])
