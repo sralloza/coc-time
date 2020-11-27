@@ -51,7 +51,7 @@ def time_to_gems(duration: Duration):
     gems = [1, 20, 260, 1000]
 
     result = 0
-    seconds = duration.seconds
+    seconds = duration.total_seconds()
     if seconds < 0:
         result = 0
     elif seconds == 0:
